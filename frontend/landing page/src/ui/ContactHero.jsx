@@ -3,7 +3,7 @@ import React from "react";
 const ContactHero = () => {
   return (
     <section className="relative">
-      <div className="relative h-screen bg-gradient-to-b from-black/20 to-black/40">
+      <div className="relative h-50 lg:h-60 bg-gradient-to-b from-black/20 to-black/40">
         <div
           className="absolute inset-0 bg-[url('../public/HeroSec.png')] bg-no-repeat bg-cover bg-center lg:rounded-bl-[80px]"
           style={{
