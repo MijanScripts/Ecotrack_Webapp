@@ -2,7 +2,9 @@ import Navbar from "../ui/Navbar";
 import Footer from "../ui/Footer";
 import ContactHero from "../ui/ContactHero";
 import ContactSection from "../ui/ContactSection";
-import ContactLink from "../ui/ContactLink";
+// import ContactLink from "../ui/ContactLink";
+// import JoinUs from "../ui/JoinUs";
+import Join from "../ui/Join";
 
 const ContactUs = () => {
   return (
@@ -25,7 +27,9 @@ const ContactUs = () => {
       </div> */}
       <ContactHero />
       <ContactSection />
-      <ContactLink />
+      {/* <JoinUs /> */}
+      {/* <ContactLink /> */}
+      <Join />
 
      
       <Footer />

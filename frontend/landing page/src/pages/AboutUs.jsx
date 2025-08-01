@@ -1,7 +1,16 @@
+import React from 'react';
+import Navbar from '../ui/Navbar';
+import Footer from '../ui/Footer';
+import Join from '../ui/Join';
+
+
+
 const AboutUs = () => {
   return (
     <div>
-      <h1>AboutUs page</h1>
+      <Navbar />
+      <Join />
+      <Footer />
     </div>
   );
 };
