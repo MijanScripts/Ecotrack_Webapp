@@ -1,10 +1,11 @@
 import AppStoreButtons from "./AppStoreButtons";
+import { Link } from "react-router-dom";
 
 const date = new Date();
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-[#000000]">
+    <footer className="w-full  bg-[#000000]">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-row items-center justify-between">
           <div className="">
@@ -19,11 +20,15 @@ const Footer = () => {
               <h1 className="text-[#3CB42B] mb-5">Download Now</h1>
 
               <ul className="text-white flex lg:flex-row flex-col space-y-6 gap-[10px]">
-                <li>About Us</li>
+                {/* <li>About Us</li>
                 <li>Features</li>
                 <li>News</li>
                 <li>FAQs</li>
-                <li>Contact Us</li>
+                <li>Contact Us</li> */}
+                <li><Link to={"/"}>Home</Link></li>
+                <li><Link to={"/about-us"}>About Us</Link></li>
+                <li><Link to={"/contact-us"}>Contact Us</Link></li>
+                <li><Link to={"/faq"}>Faq</Link></li>
               </ul>
             </div>
 

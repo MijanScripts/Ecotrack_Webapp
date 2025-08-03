@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { faqData } from '../data'; 
+import { Link } from 'react-router-dom';
 
 export default function FaQs() {
   const [openIndex, setOpenIndex] = useState(null);
@@ -43,7 +44,7 @@ export default function FaQs() {
           Still have a question?
         </p>
         <p>
-          Reach us via our <span className="text-green-600" >Contact Us</span> Page
+          Reach us via our <span className="text-green-600" ><Link to={"/contact-us"}>Contact Us</Link></span> Page
         </p>
       </div>    
     </div>

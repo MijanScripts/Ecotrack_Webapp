@@ -48,7 +48,7 @@ const TestimonialCards = () => {
             {testCards.map((el, i) => (
               <div
                 key={i}
-                className="bg-white w-[387px] h-[428px] rounded-2xl p-8 shadow-sm border border-gray-100"
+                className="bg-white  h-[428px] rounded-2xl p-8 shadow-sm border border-gray-100"
               >
                 <div className="mb-6">
                   <img src={el.icon} alt="" />
