@@ -1,3 +1,4 @@
+// Function to calculate emissions based on distance and transport type
 function mockCarbonEstimate(meansOfTransport, distance) {
   const rates = {
     car: 0.25,

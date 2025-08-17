@@ -29,6 +29,7 @@ const calculateCarbon = (req, res) => {
   const distance = getMockDistance(from, to);
   const result = mockCarbonEstimate(meansOfTransport, distance);
 
+  // Make sure the response matches the test
   return res.status(200).json({
     from,
     to,
@@ -37,7 +38,9 @@ const calculateCarbon = (req, res) => {
       value: distance,
       unit: "km"
     },
-    ...result
+    co2e: result.co2e,
+    unit: result.unit,
+    source: result.source
   });
 };
 
