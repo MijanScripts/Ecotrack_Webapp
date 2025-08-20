@@ -1,0 +1,151 @@
+# name: Deploy to Fargate
+
+# on:
+#   push:
+#     branches:
+#       - main   # deploy when pushing to main
+
+# # env:
+# #   AWS_REGION: us-east-1                # change to your AWS region
+# #   ECR_REPOSITORY: my-react-app         # change to your ECR repo name
+# #   ECS_CLUSTER: my-ecs-cluster          # change to your ECS cluster name
+# #   ECS_SERVICE: my-ecs-service          # change to your ECS service name
+# #   CONTAINER_NAME: my-react-container   # container name inside task definition
+
+# env:
+#   AWS_REGION: us-east-1                 # set this to your preferred AWS region, e.g. us-west-1
+#   ECR_REPOSITORY: gabriel-portfolio-production          # set this to your Amazon ECR repository name
+#   ECS_SERVICE: gabriel-portfolio-production-svc               # set this to your Amazon ECS service name
+#   ECS_CLUSTER: gabriel-portfolio-production-cluster               # set this to your Amazon ECS cluster name
+#   ECS_TASK_DEFINITION: gabriel-portfolio-production-task # set this to the path to your Amazon ECS task definition
+#   IMAGE_TAG: gabrielportfolio-v1.0                                            # file, e.g. .aws/task-definition.json
+#   CONTAINER_NAME: gabriel-portfolio-container          # set this to the name of the container in the
+#                                                # containerDefinitions section of your task definition
+
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Checkout repo
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       # Configure AWS credentials (requires secrets set in GitHub repo)
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       # Login to ECR
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       # Build, tag and push Docker image
+#       - name: Build, tag, and push image to ECR
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         run: |
+#           IMAGE_TAG=${{ github.sha }}
+#           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
+#           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+#           echo "image=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+#       # Deploy updated image to ECS service
+#       - name: Deploy to Amazon ECS
+#         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+#         with:
+#           task-definition: ecs-task-def.json
+#           service: ${{ env.ECS_SERVICE }}
+#           cluster: ${{ env.ECS_CLUSTER }}
+#           wait-for-service-stability: true
+#           # override container image with the new one
+#           image: ${{ steps.build.outputs.image }}
+#           container-name: ${{ env.CONTAINER_NAME }}
+
+
+
+
+
+
+
+#####new pipeline
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - feature/contact-me
+
+# env:
+#   # AWS_REGION: us-east-1
+#   ECR_REPO: gabriel-portfolio-production
+#   ECS_CLUSTER: gabriel-portfolio-production-cluster
+#   ECS_SERVICE: gabriel-portfolio-production-svc
+#   ECS_TASK_FAMILY: gabriel-portfolio-production-task
+#   LATEST: gabrielportfolio-v1.0
+
+
+env:
+  # AWS_REGION: us-east-1
+  ECR_REPO: portfolio-prod-repo
+  ECS_CLUSTER: portfolio-prod-cluster
+  ECS_SERVICE: portfolio-prod-service
+  ECS_TASK_FAMILY: portfolio-prod-task
+  LATEST: portfolio-v1.0
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+
+      - name: Login to Amazon ECR
+        id: ecr
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $(aws ecr describe-repositories --repository-names $ECR_REPO --query "repositories[0].repositoryUri" --output text)
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_URI=$(aws ecr describe-repositories --repository-names $ECR_REPO --query "repositories[0].repositoryUri" --output text)
+          docker build -t $IMAGE_URI:$LATEST .
+          docker push $IMAGE_URI:$LATEST
+
+      # - name: Update ECS service
+      #   run: |
+      #     TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_FAMILY)
+      #     NEW_TASK_DEF=$(echo $TASK_DEFINITION | jq --arg IMAGE_URI "$(aws ecr describe-repositories --repository-names $ECR_REPO --query "repositories[0].repositoryUri" --output text):latest" '.taskDefinition | .containerDefinitions[0].image = $IMAGE_URI')
+      #     echo $NEW_TASK_DEF > new-task-def.json
+      #     aws ecs register-task-definition --cli-input-json file://new-task-def.json
+      #     aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+      - name: Describe ECS Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition $ECS_TASK_FAMILY \
+            --query "taskDefinition.{containerDefinitions:containerDefinitions, family:family, taskRoleArn:taskRoleArn, executionRoleArn:executionRoleArn, networkMode:networkMode, volumes:volumes, placementConstraints:placementConstraints, requiresCompatibilities:requiresCompatibilities, cpu:cpu, memory:memory}" \
+            > task-def.json
+        env:
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ECS_TASK_FAMILY: portfolio-prod-task
+
+      - name: Register new task definition
+        run: |
+          aws ecs register-task-definition --cli-input-json file://task-def.json
+        env:
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
