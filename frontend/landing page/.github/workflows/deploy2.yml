@@ -1,0 +1,69 @@
+
+# #####new pipeline
+# name: Deploy to ECS
+
+# on:
+#   push:
+#     branches:
+#       - dev
+#       - feature/contact-me
+
+# env:
+#   AWS_REGION: us-east-1
+#   ECR_REPO: portfolio-prod-repo
+#   ECS_CLUSTER: portfolio-prod-cluster
+#   ECS_SERVICE: portfolio-prod-service
+#   ECS_TASK_FAMILY: portfolio-prod-task
+#   LATEST: portfolio-v1.0
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: ecr
+#         run: |
+#           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $(aws ecr describe-repositories --repository-names $ECR_REPO --query "repositories[0].repositoryUri" --output text)
+
+#       - name: Build and push Docker image
+#         run: |
+#           IMAGE_URI=$(aws ecr describe-repositories --repository-names $ECR_REPO --query "repositories[0].repositoryUri" --output text)
+#           docker build -t $IMAGE_URI:$LATEST .
+#           docker push $IMAGE_URI:$LATEST
+
+#       # - name: Update ECS service
+#       #   run: |
+#       #     TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_FAMILY)
+#       #     NEW_TASK_DEF=$(echo $TASK_DEFINITION | jq --arg IMAGE_URI "$(aws ecr describe-repositories --repository-names $ECR_REPO --query "repositories[0].repositoryUri" --output text):latest" '.taskDefinition | .containerDefinitions[0].image = $IMAGE_URI')
+#       #     echo $NEW_TASK_DEF > new-task-def.json
+#       #     aws ecs register-task-definition --cli-input-json file://new-task-def.json
+#       #     aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+#       - name: Describe ECS Task Definition
+#         run: |
+#           aws ecs describe-task-definition --task-definition $ECS_TASK_FAMILY \
+#             --query "taskDefinition.{containerDefinitions:containerDefinitions, family:family, taskRoleArn:taskRoleArn, executionRoleArn:executionRoleArn, networkMode:networkMode, volumes:volumes, placementConstraints:placementConstraints, requiresCompatibilities:requiresCompatibilities, cpu:cpu, memory:memory}" \
+#             > task-def.json
+#         env:
+#           AWS_REGION: us-east-1
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           ECS_TASK_FAMILY: portfolio-prod-task
+
+#       - name: Register new task definition
+#         run: |
+#           aws ecs register-task-definition --cli-input-json file://task-def.json
+#         env:
+#           AWS_REGION: us-east-1
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
