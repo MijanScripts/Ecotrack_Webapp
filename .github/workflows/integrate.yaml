@@ -28,11 +28,11 @@ jobs:
       # Frontend Build
       - name: Install Frontend Dependencies
         run: npm install
-        working-directory: frontend/'landing page'
+        working-directory: frontend/landing\ page
 
       - name: Build Frontend
         run: npm run build
-        working-directory: frontend/'landing page'
+        working-directory: frontend/landing\ page
 
 
   test:
@@ -69,8 +69,8 @@ jobs:
 
       - name: Install frontend Dependencies
         run: npm install
-        working-directory: frontend/'landing page'
+        working-directory: frontend/landing\ page
 
       - name: Run Tests
         run: npm test
-        working-directory: frontend/'landing page'
+        working-directory: frontend/landing\ page
