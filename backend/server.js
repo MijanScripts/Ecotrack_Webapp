@@ -1,16 +1,16 @@
-// server.js
-const express = require('express');
-const dotenv = require('dotenv');
-const carbonRoutes = require('./routes/carbon');
+const express = require("express");
+const dotenv = require("dotenv");
 
+// Load env vars
 dotenv.config();
+
 const app = express();
 
-// Parse JSON request bodies
+// Middleware: parse JSON request bodies
 app.use(express.json());
 
-// Mount carbon routes
-app.use('/api/carbon', carbonRoutes);
+// Routes
+app.use("/api/carbon", require("./routes/carbon"));
 
 // Export app for testing
 module.exports = app;
