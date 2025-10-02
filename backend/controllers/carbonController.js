@@ -26,24 +26,19 @@ exports.calculateCarbon = async (req, res) => {
   try {
     let { from, to, meansOfTransport, locations, transportMode } = req.body;
 
-    /**
-     * INPUT MAPPING:
-     * If user gives { from, to, meansOfTransport },
-     * only use it if locations array is not already provided
-     */
+    // INPUT MAPPING
     if ((!locations || !Array.isArray(locations) || locations.length < 2) && from && to && meansOfTransport) {
       locations = [from, to];
       transportMode = meansOfTransport;
     }
 
-    // VALIDATION: check if required fields are present
+    // VALIDATION
     if (!locations || !Array.isArray(locations) || locations.length < 2 || !transportMode) {
       return res.status(400).json({
         error: "Please provide from, to, and means of transport",
       });
     }
 
-    // Normalize transport mode
     transportMode = transportMode.trim().toLowerCase();
     if (!VALID_MODES.includes(transportMode)) {
       return res.status(400).json({
@@ -51,14 +46,14 @@ exports.calculateCarbon = async (req, res) => {
       });
     }
 
-    // Step 1: Get coordinates for each location
+    // Step 1: Get coordinates
     const coordsArray = [];
     for (let loc of locations) {
       const coord = await getCoordinates(loc.trim());
       if (!coord) {
-        return res
-          .status(400)
-          .json({ error: `Could not find coordinates for location: ${loc}` });
+        return res.status(400).json({
+          error: `Could not find coordinates for location: ${loc}`,
+        });
       }
       coordsArray.push(coord);
     }
@@ -71,11 +66,7 @@ exports.calculateCarbon = async (req, res) => {
       const start = locations[i].trim();
       const end = locations[i + 1].trim();
 
-      const result = await calculateCarbon(
-        coordsArray[i],
-        coordsArray[i + 1],
-        transportMode
-      );
+      const result = await calculateCarbon(coordsArray[i], coordsArray[i + 1], transportMode);
 
       if (typeof result.co2_kg !== "number") {
         return res.status(500).json({
@@ -85,7 +76,7 @@ exports.calculateCarbon = async (req, res) => {
 
       totalCO2 += result.co2_kg;
 
-      // Apply smart unit for each trip
+      // Apply smart unit
       const { unit, value } = getSmartUnit(result.co2_kg);
 
       trips.push({
@@ -94,14 +85,14 @@ exports.calculateCarbon = async (req, res) => {
         co2: parseFloat(value.toFixed(2)),
         unit,
         distance_km: result.distance_km ?? null,
-        source: result.source ?? "DEFRA adjusted for Nigeria",
+        distance_source: result.distance_source ?? "Unknown",
       });
     }
 
-    // Step 3: Smart unit for total CO2
+    // Step 3: Smart unit for total emissions
     const { unit: totalUnit, value: totalValue } = getSmartUnit(totalCO2);
 
-    // Step 4: Save trip record in MongoDB
+    // Step 4: Save record in DB
     const tripRecord = new Trip({
       transportMode,
       locations,
@@ -110,13 +101,13 @@ exports.calculateCarbon = async (req, res) => {
     });
     await tripRecord.save();
 
-    // Step 5: Return response
+    // Step 5: Return clean response
     res.json({
       transportMode,
       trips,
       emissions: parseFloat(totalValue.toFixed(2)),
       unit: totalUnit,
-      source: trips[0]?.source ?? "DEFRA adjusted for Nigeria",
+      emission_source: "DEFRA Nigeria Adjusted",
     });
   } catch (error) {
     console.error("Unexpected error:", error);

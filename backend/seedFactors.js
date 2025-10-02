@@ -1,4 +1,3 @@
-// seedFactors.js
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
 
@@ -13,13 +12,13 @@ const factors = [
     mode: "car", 
     factor: 0.0594, // DEFRA base ~0.0495 → +20% for older fleet
     unit: "kgCO2e/km", 
-    source: "DEFRA 2025 + Nigeria adjustment" 
+    source: "DEFRA Nigeria adapted" 
   },
   { 
     mode: "bus", 
-    factor: 0.00844, // DEFRA base ~0.0065 → +30% for diesel dominance
+    factor: 0.00844, // DEFRA base ~0.0065 => +30% for diesel dominance
     unit: "kgCO2e/km", 
-    source: "DEFRA 2025 + Nigeria adjustment" 
+    source: "DEFRA Nigeria adapted" 
   },
   { 
     mode: "plane", 
@@ -54,9 +53,9 @@ async function seedFactors() {
     // Insert new factors
     await collection.insertMany(factors);
 
-    console.log("✅ Emission factors uploaded successfully!");
+    console.log("Emission factors uploaded successfully!");
   } catch (error) {
-    console.error("❌ Error uploading emission factors:", error.message);
+    console.error("Error uploading emission factors:", error.message);
   } finally {
     await client.close();
   }

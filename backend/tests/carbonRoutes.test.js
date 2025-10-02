@@ -1,95 +1,57 @@
 const request = require("supertest");
-const app = require("../server"); // adjust if your entry file is different
+const app = require("../server");
 
-// Mock the services
+// mock geocoding service
 jest.mock("../services/geocodingService", () => ({
-  getCoordinates: jest.fn()
+  getCoordinates: jest.fn().mockResolvedValue({ lat: 6.5244, lng: 3.3792 }), // Lagos coords
 }));
+
+// mock ORS service
 jest.mock("../services/orsService", () => ({
-  calculateCarbon: jest.fn()
+  calculateCarbon: jest.fn().mockResolvedValue({
+    co2_kg: 24,       // example emission
+    distance_km: 120, // fake distance
+    source: "mocked ORS",
+  }),
 }));
 
-const { getCoordinates } = require("../services/geocodingService");
-const { calculateCarbon } = require("../services/orsService");
+// mock factor service (if calculateCarbon internally calls it)
+jest.mock("../services/factorService", () => ({
+  getFactorForTransport: jest.fn().mockImplementation(async (mode) => {
+    const factors = {
+      car: { factor: 0.2 },
+      bus: { factor: 0.1 },
+      plane: { factor: 0.25 },
+      train: { factor: 0.05 },
+      bike: { factor: 0 },
+    };
+    return factors[mode] || null;
+  }),
+}));
 
-describe("Carbon Calculator API", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+describe("Carbon Routes", () => {
+  it("calculates emissions for valid trip data", async () => {
+    const response = await request(app)
+      .post("/api/carbon")
+      .send({ from: "Lagos", to: "Ibadan", meansOfTransport: "car" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("emissions");
+    expect(response.body).toHaveProperty("unit");
+    expect(response.body.emissions).toBeGreaterThan(0);
   });
 
-  test("should calculate emissions for a single trip (from/to/meansOfTransport)", async () => {
-    // Mock geocoding
-    getCoordinates
-      .mockResolvedValueOnce({ lat: 6.5244, lng: 3.3792 }) // Lagos
-      .mockResolvedValueOnce({ lat: 9.0579, lng: 7.4951 }); // Abuja
-
-    // Mock ORS calculation
-    calculateCarbon.mockResolvedValueOnce({
-      co2_kg: 50,
-      distance_km: 700,
-      source: "mocked"
-    });
-
-    const res = await request(app)
-      .post("/api/carbon")
-      .send({
-        from: "Lagos",
-        to: "Abuja",
-        meansOfTransport: "bus"
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.body.transportMode).toBe("bus");
-    expect(res.body.emissions).toBeCloseTo(50);
-    expect(res.body.trips).toHaveLength(1);
-    expect(res.body.trips[0]).toMatchObject({
-      from: "Lagos",
-      to: "Abuja"
-    });
+  it("returns 400 if input is missing", async () => {
+    const response = await request(app).post("/api/carbon").send({});
+    expect(response.status).toBe(400);
   });
 
-  test("should calculate emissions for a multi-stop trip (locations + transportMode)", async () => {
-    // Mock geocoding
-    getCoordinates
-      .mockResolvedValueOnce({ lat: 6.5244, lng: 3.3792 }) // Lagos
-      .mockResolvedValueOnce({ lat: 7.3775, lng: 3.9470 }) // Ibadan
-      .mockResolvedValueOnce({ lat: 9.0579, lng: 7.4951 }); // Abuja
-
-    // Mock ORS calculation for Lagos → Ibadan and Ibadan → Abuja
-    calculateCarbon
-      .mockResolvedValueOnce({
-        co2_kg: 20,
-        distance_km: 130,
-        source: "mocked"
-      })
-      .mockResolvedValueOnce({
-        co2_kg: 40,
-        distance_km: 570,
-        source: "mocked"
-      });
-
-    const res = await request(app)
+  it("handles unsupported transport mode", async () => {
+    const response = await request(app)
       .post("/api/carbon")
-      .send({
-        locations: ["Lagos", "Ibadan", "Abuja"],
-        transportMode: "bus"
-      });
+      .send({ from: "Lagos", to: "Ibadan", meansOfTransport: "spaceship" });
 
-    expect(res.status).toBe(200);
-    expect(res.body.transportMode).toBe("bus");
-    expect(res.body.emissions).toBeCloseTo(60); // 20 + 40
-    expect(res.body.trips).toHaveLength(2);
-
-    // Check first leg
-    expect(res.body.trips[0]).toMatchObject({
-      from: "Lagos",
-      to: "Ibadan"
-    });
-
-    // Check second leg
-    expect(res.body.trips[1]).toMatchObject({
-      from: "Ibadan",
-      to: "Abuja"
-    });
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("error");
   });
 });

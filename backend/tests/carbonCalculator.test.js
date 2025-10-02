@@ -1,9 +1,10 @@
 const { calculateEmissions } = require("../services/emissionService");
 
-describe("Carbon Calculator Service", () => {
+describe("Emission Service (calculateEmissions)", () => {
   it("calculates car emissions", async () => {
     const result = await calculateEmissions("car", 130);
     expect(result.co2e).toBeCloseTo(7.72, 2); // 130 * 0.0594
+    expect(result.unit).toBe("kgCO2e");
   });
 
   it("calculates bus emissions", async () => {
@@ -26,8 +27,9 @@ describe("Carbon Calculator Service", () => {
     expect(result.co2e).toBe(0);
   });
 
-  it("returns default emission for unknown transport mode", async () => {
-    const result = await calculateEmissions("canoe", 1000);
-    expect(result.co2e).toBeCloseTo(200, 2); // 1000 * 0.2
+  it("throws error for unsupported transport mode", async () => {
+    await expect(calculateEmissions("canoe", 100))
+      .rejects
+      .toThrow("Transport mode 'canoe' not supported in DEFRA Nigeria dataset");
   });
 });

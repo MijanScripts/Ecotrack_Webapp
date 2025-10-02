@@ -1,19 +1,15 @@
 const { getFactorForTransport } = require("./factorService");
 
 async function calculateEmissions(mode, distanceKm) {
-  let factorDoc = await getFactorForTransport(mode); // { mode, factor }
-
-  // Fallback if no factor found → use default
-  if (!factorDoc) {
-    factorDoc = { mode: "default", factor: 0.2 }; // default 0.2 kg/km
-  }
+  // Get factor (throws if not found in MongoDB or JSON)
+  const factorDoc = await getFactorForTransport(mode);
 
   const co2e = distanceKm * factorDoc.factor;
 
   return {
     co2e: parseFloat(co2e.toFixed(2)),
     unit: "kgCO2e",
-    source: "DEFRA (adjusted for Nigeria)"
+    source: factorDoc.source || "DEFRA Nigeria adjusted"
   };
 }
 

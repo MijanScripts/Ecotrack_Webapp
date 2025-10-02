@@ -3,7 +3,7 @@ const { calculateCarbon } = require("../controllers/carbonController");
 // mock Trip model
 jest.mock("../models/Trip", () => {
   return jest.fn().mockImplementation(() => ({
-    save: jest.fn(),
+    save: jest.fn(), 
   }));
 });
 
