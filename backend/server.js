@@ -1,17 +1,24 @@
-const express = require('express');
-const distanceRoute = require('./routes/distance');
-require('dotenv').config();
+const express = require("express");
+const dotenv = require("dotenv");
+
+// Load env vars
+dotenv.config();
 
 const app = express();
+
+// Middleware: parse JSON request bodies
 app.use(express.json());
 
-app.use('/api/distance', distanceRoute);
+// Routes
+app.use("/api/carbon", require("./routes/carbon"));
 
-app.get('/', (req, res) => {
-	res.send('Welcome to the Carbon Tracker API');
-});
+// Export app for testing
+module.exports = app;
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-	console.log(`🚀 Server is running on http://localhost:${PORT}`);
-});
+// Start server only if this file is run directly
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
