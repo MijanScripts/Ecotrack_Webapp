@@ -1,0 +1,76 @@
+name: Countinous Integration Github Action
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # Backend Build 
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: backend
+
+      # Frontend Build
+      - name: Install Frontend Dependencies
+        run: npm install
+        working-directory: frontend/landing-page
+
+      - name: Build Frontend
+        run: npm run build
+        working-directory: frontend/landing-page
+
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runcommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Start Backend 
+        run: cd backend && npm start &
+        env:
+          PORT: 5000
+          MONGO_URI: mongodb://localhost:27017/testdb
+
+      - name: Install frontend Dependencies
+        run: npm install
+        working-directory: frontend/landing-page
+
+      - name: Run Tests
+        run: npm test
+        working-directory: frontend/landing-page
