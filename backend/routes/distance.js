@@ -30,6 +30,7 @@ router.post('/', async (req, res) => {
 
 		const response = await axios.get(matrixUrl);
 		const data = response.data;
+		console.log(data)
 
 		const distanceInMeters = data.distances[0][1];
 		const durationInSeconds = data.durations[0][1];
@@ -59,5 +60,6 @@ router.post('/', async (req, res) => {
 		res.status(500).json({ error: err.message });
 	}
 });
+
 
 module.exports = router;
