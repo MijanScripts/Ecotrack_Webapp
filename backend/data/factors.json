@@ -1,0 +1,38 @@
+[
+  {
+    "mode": "driving-car",
+    "factor": 0.18,
+    "unit": "kgCO2e/km",
+    "source": "DEFRA 2023 adjusted for Nigeria"
+  },
+  {
+    "mode": "bus",
+    "factor": 0.10,
+    "unit": "kgCO2e/km",
+    "source": "DEFRA 2023 adjusted for Nigeria"
+  },
+  {
+    "mode": "motorbike",
+    "factor": 0.08,
+    "unit": "kgCO2e/km",
+    "source": "DEFRA 2023 adjusted for Nigeria"
+  },
+  {
+    "mode": "train",
+    "factor": 0.04,
+    "unit": "kgCO2e/km",
+    "source": "DEFRA 2023 adjusted for Nigeria"
+  },
+  {
+    "mode": "cycling-regular",
+    "factor": 0,
+    "unit": "kgCO2e/km",
+    "source": "Zero emissions (DEFRA, human-powered)"
+  },
+  {
+    "mode": "foot-walking",
+    "factor": 0,
+    "unit": "kgCO2e/km",
+    "source": "Zero emissions (DEFRA, human-powered)"
+  }
+]
