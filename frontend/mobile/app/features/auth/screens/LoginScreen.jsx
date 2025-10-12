@@ -101,7 +101,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.socialButton}>
-            <Text style={styles.socialIcon}></Text>
+            <Text style={styles.socialIcon}>🍎</Text>
             <Text style={styles.socialText}>Apple</Text>
           </TouchableOpacity>
         </View>
