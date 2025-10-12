@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import InputField from '../../../components/InputField';
 import mockApiService from '../../../services/mockApi';
 
@@ -30,23 +31,41 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
-  const pickImageFromGallery = () => {
-    const sampleImages = [
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=120&h=120&fit=crop&crop=face',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=face'
-    ];
-    const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
-    setProfileImageUrl(randomImage);
+  const pickImageFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera roll permissions to select an image.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setProfileImageUrl(result.assets[0].uri);
+    }
   };
 
-  const pickImageFromCamera = () => {
-    const sampleImages = [
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=face'
-    ];
-    const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
-    setProfileImageUrl(randomImage);
+  const pickImageFromCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera permissions to take a photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setProfileImageUrl(result.assets[0].uri);
+    }
   };
 
 
@@ -100,7 +119,7 @@ const EditProfileScreen = ({ navigation }) => {
 
       <View style={styles.content}>
         <View style={styles.imageSection}>
-          <TouchableOpacity style={styles.imageContainer} onPress={() => Alert.alert('Image Picker', 'Select image from gallery or camera', [
+          <TouchableOpacity style={styles.imageContainer} onPress={() => Alert.alert('Change Profile Photo', 'Select image source', [
             { text: 'Gallery', onPress: pickImageFromGallery },
             { text: 'Camera', onPress: pickImageFromCamera },
             { text: 'Cancel', style: 'cancel' }
@@ -113,7 +132,7 @@ const EditProfileScreen = ({ navigation }) => {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Alert.alert('Image Picker', 'Select image from gallery or camera', [
+          <TouchableOpacity onPress={() => Alert.alert('Change Profile Photo', 'Select image source', [
             { text: 'Gallery', onPress: pickImageFromGallery },
             { text: 'Camera', onPress: pickImageFromCamera },
             { text: 'Cancel', style: 'cancel' }

@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Spacer from '../../../components/Spacer';
-import InputField from '../../../components/InputField';
-import mockApiService from '../../../services/mockApi';
 
 const EcoTrack = require('../../../../assets/EcoTrack.png');
 
 const RegisterScreen = ({ navigation }) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !lastName || !email || !password || !confirmPassword) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
@@ -29,113 +26,138 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
-      setLoading(true);
-      console.log('Starting registration...');
-      const response = await mockApiService.register({ name, lastName, email, password });
-      console.log('Registration response:', response);
+      // TODO: Replace with actual API call
+      const userData = {
+        id: '1',
+        name: `${firstName} ${lastName}`,
+        email: email,
+        points: 0,
+        level: 1
+      };
       
-      Alert.alert('Registration Successful', response.message, [
-        { text: 'OK', onPress: () => {
-          console.log('Navigating to EmailVerification with:', response.user);
-          navigation.navigate('EmailVerification', { userData: response.user });
-        }}
-      ]);
+      // Navigate to email verification
+      navigation.navigate('EmailVerification', { email, userData });
     } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert('Error', error.message || 'Registration failed');
-    } finally {
-      setLoading(false);
+      Alert.alert('Error', 'Registration failed');
     }
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-      <Spacer height={100} />
-      
-      <View style={styles.form}>
-        <Text style={styles.title}>Create Account</Text>
-        
-        <InputField
-          label="First Name"
-          placeholder="Enter your first name"
-          value={name}
-          onChangeText={setName}
-          iconName="person-outline"
-          autoCapitalize="words"
-        />
-        
-        <InputField
-          label="Last Name"
-          placeholder="Enter your last name"
-          value={lastName}
-          onChangeText={setLastName}
-          iconName="person-outline"
-          autoCapitalize="words"
-        />
-        
-        <InputField
-          label="Email"
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          iconName="mail-outline"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        
-        <InputField
-          label="Password"
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          iconName="lock-closed-outline"
-          secureTextEntry={!showPassword}
-          showPasswordToggle={true}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-        />
-        
-        <InputField
-          label="Confirm Password"
-          placeholder="Confirm your password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          iconName="lock-closed-outline"
-          secureTextEntry={!showConfirmPassword}
-          showPasswordToggle={true}
-          onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
-        />
-        
-        <TouchableOpacity 
-          style={[styles.registerButton, loading && styles.disabledButton]} 
-          onPress={handleRegister}
-          disabled={loading}
-        >
-          <Text style={styles.registerButtonText}>{loading ? 'Registering...' : 'Register'}</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.orText}>Or continue with</Text>
-        
-        <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton}>
-            <Text style={styles.socialIconFA}>G</Text>
-            <Text style={styles.socialText}>Google</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.socialButton}>
-            <Text style={styles.socialIconFA}></Text>
-            <Text style={styles.socialText}>Apple</Text>
-          </TouchableOpacity>
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Image source={EcoTrack} style={styles.logo} />
         </View>
         
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.switchText}>
-            <Text style={styles.blackText}>Already have an account? </Text>
-            <Text style={styles.greenText}>Sign In</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-      </View>
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>First Name</Text>
+            <View style={styles.inputWithIcon}>
+              <Text style={styles.inputIcon}>👤</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your first name"
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Last Name</Text>
+            <View style={styles.inputWithIcon}>
+              <Text style={styles.inputIcon}>👤</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your last name"
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <View style={styles.inputWithIcon}>
+              <Text style={styles.inputIcon}>📧</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+          </View>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputWithIcon}>
+              <Text style={styles.inputIcon}>🔒</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <View style={styles.inputWithIcon}>
+              <Text style={styles.inputIcon}>🔒</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Text style={styles.eyeIcon}>{showConfirmPassword ? '👁️' : '🙈'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+            <Text style={styles.registerButtonText}>Create Account</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.orText}>Or continue with</Text>
+          
+          <View style={styles.socialButtons}>
+            <TouchableOpacity style={styles.socialButton}>
+              <Text style={styles.socialIcon}>G</Text>
+              <Text style={styles.socialText}>Google</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.socialButton}>
+              <Text style={styles.socialIcon}>🍎</Text>
+              <Text style={styles.socialText}>Apple</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.switchText}>
+              <Text style={styles.blackText}>Already have an account? </Text>
+              <Text style={styles.greenText}>Sign In</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+        </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 };
@@ -144,40 +166,80 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  content: {
+    flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    // marginBottom: 20,
+  },
+  logo: {
+    width: 300,
+    height: 120,
+    resizeMode: 'contain',
   },
   form: {
+    // backgroundColor: '#f8f9fa',
     padding: 20,
     borderRadius: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    // elevation: 5,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  inputContainer: {
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
   },
-
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    paddingHorizontal: 12,
+  },
+  inputIcon: {
+    marginRight: 10,
+    fontSize: 18,
+  },
+  input: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    marginLeft: 10,
+    fontSize: 18,
+  },
   registerButton: {
     backgroundColor: '#28a745',
-    padding: 18,
+    padding: 16,
     borderRadius: 10,
     alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 15,
+    marginBottom: 15,
   },
   registerButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
   },
-  disabledButton: {
-    backgroundColor: '#ccc',
-  },
   orText: {
     textAlign: 'center',
     color: '#666',
-    fontSize: 16,
-    marginVertical: 20,
+    fontSize: 14,
+    marginVertical: 15,
   },
   socialButtons: {
     gap: 10,
@@ -189,14 +251,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 2,
     borderColor: '#28a745',
-    padding: 15,
+    padding: 12,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  socialIconFA: {
-    marginRight: 8,
+  socialIcon: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#000',
+    marginRight: 8,
   },
   socialText: {
     fontSize: 16,
@@ -205,8 +268,8 @@ const styles = StyleSheet.create({
   },
   switchText: {
     textAlign: 'center',
-    fontSize: 16,
-    marginTop: 20,
+    fontSize: 15,
+    marginTop: 15,
   },
   blackText: {
     color: '#000',

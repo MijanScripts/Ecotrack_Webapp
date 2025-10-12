@@ -1,32 +1,29 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import InputField from '../../../components/InputField';
-import mockApiService from '../../../services/mockApi';
+import Spacer from '../../../components/Spacer';
 
 const EcoTrack = require('../../../../assets/EcoTrack.png');
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
 
-  const handleResetPassword = async () => {
+  const handleResetPassword = () => {
     if (!email) {
       Alert.alert('Error', 'Please enter your email address');
       return;
     }
-
-    try {
-      const response = await mockApiService.forgotPassword(email);
-      Alert.alert('Success', response.message, [
-        { text: 'OK', onPress: () => navigation.navigate('Login') }
-      ]);
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to send reset link');
-    }
+    
+    Alert.alert('Success', 'Password reset link sent to your email');
+    navigation.navigate('Login');
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
+        
+      {/* <Spacer height={100} /> */}
+
       <View style={styles.logoContainer}>
         <Image source={EcoTrack} style={styles.logo} />
       </View>
@@ -86,8 +83,8 @@ const styles = StyleSheet.create({
     // elevation: 10,
   },
   logo: {
-    width: 500,
-    height: 300,
+    width: 300,
+    height: 100,
     resizeMode: 'contain',
   },
   form: {
@@ -114,7 +111,33 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 30,
   },
-
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 5,
+  },
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    paddingHorizontal: 12,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: '#000',
+  },
   resetButton: {
     backgroundColor: '#28a745',
     padding: 18,

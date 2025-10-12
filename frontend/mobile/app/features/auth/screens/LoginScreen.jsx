@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Spacer from '../../../components/Spacer';
-import InputField from '../../../components/InputField';
-import mockApiService from '../../../services/mockApi';
 
 const EcoTrack = require('../../../../assets/EcoTrack.png');
 
@@ -19,14 +18,22 @@ const LoginScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await mockApiService.login(email, password);
+      // TODO: Replace with actual API call
+      const userData = {
+        id: '1',
+        name: 'John Doe',
+        email: email,
+        points: 0,
+        level: 1
+      };
       
-      await AsyncStorage.setItem('authToken', response.token);
-      await AsyncStorage.setItem('userData', JSON.stringify(response.user));
+      await AsyncStorage.setItem('authToken', 'temp_token_123');
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
       
-      navigation.navigate('Onboarding');
+      // Trigger auth state change
+      global.forceAuthCheck?.();
     } catch (error) {
-      Alert.alert('Error', error.message || 'Login failed');
+      Alert.alert('Error', 'Login failed');
     }
   };
 
@@ -42,26 +49,37 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.form}>
         {/* <Text style={styles.title}>Welcome Back</Text> */}
         
-        <InputField
-          label="Email"
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          iconName="mail-outline"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputWithIcon}>
+            <Text style={styles.inputIcon}>📧</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+        </View>
         
-        <InputField
-          label="Password"
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          iconName="lock-closed-outline"
-          secureTextEntry={!showPassword}
-          showPasswordToggle={true}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-        />
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputWithIcon}>
+            <Text style={styles.inputIcon}>🔒</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         
         <TouchableOpacity 
           style={styles.forgotPasswordButton}
@@ -144,7 +162,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-
+  inputContainer: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 5,
+  },
+  inputWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    paddingHorizontal: 12,
+  },
+  inputIcon: {
+    marginRight: 10,
+    fontSize: 18,
+  },
+  input: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+  },
+  eyeIcon: {
+    marginLeft: 10,
+    fontSize: 18,
+  },
   forgotPasswordButton: {
     alignSelf: 'flex-end',
     marginBottom: 10,
